@@ -1,0 +1,87 @@
+﻿## Interface: 11200
+## Title: |cffFF4500[C]|R[增强] |rAutomaton工具箱强化版
+## Title-zhCN: |cffFF4500[C]|R[增强] |rAutomaton工具箱强化版
+## Notes: |CFF33AAFFAutomaton|R|N自动完成某一些功能。|N比如：自动更换磨刀石/赞扎、自动下马、自动站立等，/auto设置。
+## Notes-zhCN: |CFF33AAFFAutomaton|R|N自动完成某一些功能。|N比如：自动更换磨刀石/赞扎、自动下马、自动站立等，/auto设置。
+## Version: 1.1.2
+## Author: weab,Artur91425,黑猫插件,可可慕斯，最爱
+## X-Category: Interface Enhancements
+## X-Credits: gxam (co-author), ssayclub (koKR translations), Lichery (ruRU translations)
+## X-Embeds: Ace2, AbacusLib, GratuityLib, SpecialEventsEmbed
+## X-RelSite-WoWI: 5610
+## X-AceForum: 2887
+## X-Commands: /auto, /automaton
+## OptionalDeps: Ace2, AbacusLib, GratuityLib, SpecialEventsEmbed
+## SavedVariables: AutomatonDB
+## SavedVariablesPerCharacter: AutomatonDBChar STradeDB
+
+Core.lua
+Modules\KeepOnline.lua
+Modules\Filter.lua
+Modules\Follow.lua
+Modules\Group.lua
+Modules\Invite.lua
+Modules\Loner.lua
+Modules\LootBOP.lua
+Modules\MailTo.lua
+Modules\Plates.lua
+Modules\Purchases.lua
+Modules\Queue.lua
+Modules\Ready.lua
+Modules\Release.lua
+Modules\Repair.lua
+Modules\Rez.lua
+Modules\Sell.lua
+Modules\Stand.lua
+Modules\Wuss.lua
+Modules\CancelBuff.lua
+Modules\Lern2Spell.lua
+Modules\AlertCombat.lua
+Modules\QuestAnnouncer.lua
+Modules\Trainer.lua
+Modules\pfQuestSendLink.lua
+Modules\ClearCache.lua
+Modules\SelfName.lua
+Modules\ShaguStance.lua
+Modules\ErrClear.lua
+Modules\Superwow.lua
+Modules\CancelTiger.lua
+Modules\NewLevelFrame.lua
+Modules\sTrade.lua
+Modules\WorldBuffs.lua
+Modules\Discard.lua
+Modules\AutoShout.lua
+Modules\Unlock.lua
+Modules\1invall.lua
+Modules\AutoOpenBag.lua
+Modules\OmniCC.lua
+Modules\Dismount.lua
+Modules\Unshapeshift.lua
+Modules\RandomMount.lua
+Modules\ExpBar.lua
+Modules\DrunkTracker.lua
+Modules\TSTargetMark.lua
+Modules\AutoNeed.lua
+Modules\SendRollItem.lua
+Modules\shiqu.lua
+Modules\QuestAutomation.lua
+Modules\HideActionBarEndCaps.lua
+Modules\S_ItemLinktoenUS.lua
+Modules\AutoDB.lua
+Modules\ProcDoc.lua
+Modules\MasterLootRemind.lua
+Modules\InterPlayerLink.lua
+Modules\Range.lua
+Modules\Summon.lua
+Modules\S_ActionCount.lua
+Modules\Boomtime.lua
+Modules\KneelToQueen.lua
+Modules\jtlk.lua
+Modules\PicoPoisons.lua
+Modules\Xguild.lua
+Modules\RangeController.lua
+Modules\zTip.lua
+Modules\CDSafe.lua
+Modules\QuestItemBar.lua
+
+# Plubics\CleanChat\CleanChat.xml
