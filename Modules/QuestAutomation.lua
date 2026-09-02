@@ -63,6 +63,7 @@ L:RegisterTranslations("enUS", function()
 		["Invalid reward index"] = "Invalid reward index, must be 1-4",
 		["Quest not found"] = "Quest not found",
 		["Reward index for %s"] = "Reward index for %s",
+		["背包已满，跳过自动完成任务以避免重试循环"] = "Bag full, skipped auto-complete to avoid retry loop",
 	}
 end)
 
@@ -127,6 +128,7 @@ L:RegisterTranslations("zhCN", function()
 		["Invalid reward index"] = "无效的奖励选择，必须为1-4",
 		["Quest not found"] = "未找到该任务",
 		["Reward index for %s"] = "%s 的奖励选择",
+		["背包已满，跳过自动完成任务以避免重试循环"] = "背包已满，跳过自动完成任务以避免重试循环",
 	}
 end)
 
@@ -137,6 +139,26 @@ Automaton_QuestAutomation.moduledesc = L["Automate quest acceptance and completi
 -- 模块状态与数据存储
 Automaton_QuestAutomation.completedQuests = {}
 Automaton_QuestAutomation.incompleteQuests = {}
+Automaton_QuestAutomation.fullBagWarned = {}
+
+-----------------------------------------------------------
+-- 背包空位计算（1.12.1 中 GetContainerNumFreeSlots 不可用，需手动遍历）
+-----------------------------------------------------------
+function Automaton_QuestAutomation:GetFreeBagSlots()
+	local total = 0
+	for bag = 0, 4 do
+		local numSlots = GetContainerNumSlots(bag)
+		if numSlots and numSlots > 0 then
+			for slot = 1, numSlots do
+				local texture = GetContainerItemInfo(bag, slot)
+				if not texture then
+					total = total + 1
+				end
+			end
+		end
+	end
+	return total
+end
 
 -----------------------------------------------------------
 -- 任务名称匹配函数（移植自YGBExchange）
@@ -805,6 +827,17 @@ function Automaton_QuestAutomation:QUEST_COMPLETE()
 	-- 同步 NPC 自定义标记（保证从 gossip/greeting 或直接打开任务帧时，标记都反映当前 NPC）
 	self:UpdateNpcCustomFlag({ questName })
 
+	-- 修复:背包满时调用 GetQuestReward 会因物品无法接收而无限重试
+	-- 仅当任务有物品奖励且背包完全没空位时跳过,纯金钱奖励不受影响
+	local hasItemReward = (GetNumQuestRewards() or 0) > 0 or (GetNumQuestChoices() or 0) > 0
+	if hasItemReward and self:GetFreeBagSlots() <= 0 then
+		if not self.fullBagWarned[questName] then
+			self.fullBagWarned[questName] = true
+			PrintLog(L["背包已满，跳过自动完成任务以避免重试循环"], questName)
+		end
+		return
+	end
+
 	-- 自定义任务：按预设奖励索引自动选择
 	if custom then
 		local idx = custom.rewardIndex or 1
@@ -904,6 +937,7 @@ function Automaton_QuestAutomation:QUEST_LOG_UPDATE()
 
 	self.completedQuests = {}
 	self.incompleteQuests = {}
+	self.fullBagWarned = {}
 
 	if numEntries > 0 then
 		for i = 1, numEntries do
