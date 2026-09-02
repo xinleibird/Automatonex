@@ -114,6 +114,9 @@ local zShowItemID = true -- 显示物品ID
 local zShowSpellID = false -- 显示法术ID
 local zShowDamageAndSpeed = false -- 显示目标伤害和攻速
 local zShowImpression = false -- 显示玩家印象
+local zShowPetHappiness = true -- 显示自己宠物快乐度
+local zShowPetFood = true -- 显示自己宠物食物需求
+local zShowPetExp = true -- 显示自己宠物经验（60级不显示）
 
 -- 3D模型配置（新增）
 local zShow3DModel = false -- 是否启用3D模型
@@ -473,6 +476,45 @@ Automaton_zTip.options = {
 				end,
 				set = function(v)
 					Automaton_zTip.db.profile.zShowImpression = v
+					Automaton_zTip:UpdateConfig()
+				end,
+			},
+			zShowPetHappiness = {
+				type = "toggle",
+				name = "宠物快乐度",
+				desc = "鼠标提示显示自己宠物的快乐度（不高兴/满足/快乐 及对应伤害加成）",
+				order = 5,
+				get = function()
+					return Automaton_zTip.db.profile.zShowPetHappiness
+				end,
+				set = function(v)
+					Automaton_zTip.db.profile.zShowPetHappiness = v
+					Automaton_zTip:UpdateConfig()
+				end,
+			},
+			zShowPetFood = {
+				type = "toggle",
+				name = "宠物食物需求",
+				desc = "鼠标提示显示自己宠物能吃的食物类型",
+				order = 6,
+				get = function()
+					return Automaton_zTip.db.profile.zShowPetFood
+				end,
+				set = function(v)
+					Automaton_zTip.db.profile.zShowPetFood = v
+					Automaton_zTip:UpdateConfig()
+				end,
+			},
+			zShowPetExp = {
+				type = "toggle",
+				name = "宠物经验",
+				desc = "鼠标提示显示自己宠物的当前经验（宠物满级60级时不显示）",
+				order = 7,
+				get = function()
+					return Automaton_zTip.db.profile.zShowPetExp
+				end,
+				set = function(v)
+					Automaton_zTip.db.profile.zShowPetExp = v
 					Automaton_zTip:UpdateConfig()
 				end,
 			},
@@ -997,6 +1039,55 @@ function Automaton_zTip:ShowImpression(unit)
 					impressionText = tostring(impression)
 				end
 				GameTooltip:AddLine(string.format("印象: %s", impressionText))
+			end
+		end
+	end
+end
+
+-- 显示自己宠物信息（快乐度/食物需求/经验）
+function Automaton_zTip:ShowPetInfo(unit)
+	if not (zShowPetHappiness or zShowPetFood or zShowPetExp) then
+		return
+	end
+	if not UnitIsUnit(unit, "pet") then
+		return
+	end
+
+	-- 快乐度（GetPetHappiness 仅猎人宠物返回有效值，术士宠物等返回 nil 自动跳过）
+	if zShowPetHappiness and GetPetHappiness then
+		local happiness = GetPetHappiness()
+		if happiness then
+			local labels = {
+				[1] = "|cffff3333不高兴 (伤害75%)|r",
+				[2] = "|cffffff00满足 (伤害100%)|r",
+				[3] = "|cff33ff33快乐 (伤害125%)|r",
+			}
+			GameTooltip:AddLine("快乐度: " .. (labels[happiness] or tostring(happiness)))
+		end
+	end
+
+	-- 食物需求（客户端返回的已是本地化字符串，如：肉、鱼、水果）
+	if zShowPetFood and GetPetFoodTypes then
+		local foods = { GetPetFoodTypes() }
+		if foods and table.getn(foods) > 0 then
+			GameTooltip:AddLine("食物需求: |cff66ccff" .. table.concat(foods, "、") .. "|r")
+		end
+	end
+
+	-- 经验（宠物满级 60 级时不显示）
+	if zShowPetExp then
+		local level = UnitLevel("pet")
+		if level and level ~= 60 then
+			-- 1.12 宠物经验必须用 GetPetExperience()（UnitXP("pet") 本客户端不可靠，返回 nil/0）
+			local cur, max
+			if GetPetExperience then
+				cur, max = GetPetExperience()
+			end
+			if not cur or not max then
+				cur, max = UnitXP("pet"), UnitXPMax("pet")
+			end
+			if cur and max and max > 0 then
+				GameTooltip:AddLine(string.format("经验: %d/%d (%d%%)", cur, max, math.floor(cur / max * 100)))
 			end
 		end
 	end
@@ -1688,6 +1779,9 @@ function Automaton_zTip:UpdateConfig()
 	zShowSpellID = p.zShowSpellID
 	zShowDamageAndSpeed = p.zShowDamageAndSpeed
 	zShowImpression = p.zShowImpression
+	zShowPetHappiness = p.zShowPetHappiness
+	zShowPetFood = p.zShowPetFood
+	zShowPetExp = p.zShowPetExp
 	-- 3D模型配置
 	zShow3DModel = p.zShow3DModel
 	zModelSize = p.zModelSize
@@ -1813,10 +1907,11 @@ function Automaton_zTip:OnShow()
 		GameTooltip:Show()
 	end
 
-	-- 显示伤害和攻速、玩家印象（单位存在时）
+	-- 显示伤害和攻速、玩家印象、宠物信息（单位存在时）
 	if UnitExists("mouseover") then
 		self:ShowDamageAndSpeed("mouseover")
 		self:ShowImpression("mouseover")
+		self:ShowPetInfo("mouseover")
 	end
 
 	-- 显示3D模型（如果悬停单位是玩家）
@@ -2118,6 +2213,9 @@ function Automaton_zTip:OnInitialize()
 		zShowSpellID = false,
 		zShowDamageAndSpeed = false,
 		zShowImpression = false,
+		zShowPetHappiness = true,
+		zShowPetFood = true,
+		zShowPetExp = true,
 		-- 3D模型默认值
 		zShow3DModel = false,
 		zModelSize = 120,

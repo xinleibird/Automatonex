@@ -398,6 +398,51 @@ function Automaton_AlertCombat:StopAggroCheck()
 	end
 end
 
+-- ========== 友方玩家盯梢扫描（不依赖名字板） ==========
+-- 根因说明：本客户端 frame:GetName(1) 返回的是名字板单位 GUID（Nampower v2.28+），
+-- 即只有显示了名字板的单位才会被帧扫描看到；pfUI 友方名字板默认关闭(showfriendly=0)，
+-- 友方玩家永远扫不到。此处改用标准 unit token（目标/悬停/小队/团队）做可靠扫描。
+function Automaton_AlertCombat:ScanFriendlyWatchers()
+	local playerName = UnitName("player")
+	if not playerName then
+		return nil
+	end
+
+	-- 候选单位：当前目标、鼠标悬停、小队、团队
+	local candidates = { "target", "mouseover" }
+	local n = GetNumPartyMembers() or 0
+	for i = 1, n do
+		table.insert(candidates, "party" .. i)
+	end
+	local rn = GetNumRaidMembers() or 0
+	for i = 1, rn do
+		table.insert(candidates, "raid" .. i)
+	end
+
+	for i = 1, table.getn(candidates) do
+		local unit = candidates[i]
+		local oku, exists = pcall(UnitExists, unit)
+		if oku and exists then
+			-- 排除自己（如自己目标了自己）
+			local oku2, isSelf = pcall(UnitIsUnit, unit, "player")
+			if not (oku2 and isSelf) then
+				-- 友方判定用 UnitIsFriend（对玩家/NPC/宠物均可靠），不要依赖 UnitCanAttack
+				local okf, isFriend = pcall(UnitIsFriend, "player", unit)
+				if okf and isFriend then
+					local okt, texists = pcall(UnitExists, unit .. "target")
+					if okt and texists then
+						local tname = UnitName(unit .. "target")
+						if tname == playerName then
+							return UnitName(unit) or "某人"
+						end
+					end
+				end
+			end
+		end
+	end
+	return nil
+end
+
 -- ========== 仇恨检查核心 ==========
 function Automaton_AlertCombat:CheckAggro()
 	if not self.db.profile.enableAggroAlert and not self.db.profile.enableFriendlyTargetAlert then
@@ -424,24 +469,25 @@ function Automaton_AlertCombat:CheckAggro()
 				-- 安全检测单位是否存在
 				local ok, exists = pcall(UnitExists, unitToken)
 				if ok and exists then
-					-- 安全检测是否可攻击
-					local canAttack = pcall(UnitCanAttack, "player", unitToken)
+					-- 阵营判定：友方(UnitIsFriend)优先，绝不进 OT 分支
+					-- 注意：pcall 返回 (success, value1, ...)，第二个返回值才是 API 的真正结果
+					local okf, isFriend = pcall(UnitIsFriend, "player", unitToken)
+					local okc, canAttack = pcall(UnitCanAttack, "player", unitToken)
 					local targetUnit = unitToken .. "target"
 					local ok2, targetExists = pcall(UnitExists, targetUnit)
 					if ok2 and targetExists then
 						local targetName = UnitName(targetUnit)
 						if targetName == playerName then
-							if canAttack then
-								-- 敌对单位（怪物）目标是你 → OT 警告
-								mobName = UnitName(unitToken) or "未知目标"
-								foundHostile = true
-							elseif unitToken ~= "player" then
-								-- 友方单位目标是你 → 偷瞄提醒（仅限玩家，排除自身）
-								local okp, isPlayer = pcall(UnitIsPlayer, unitToken)
-								if okp and isPlayer then
+							if okf and isFriend then
+								-- 友方单位（玩家/NPC/宠物）目标是你 → 偷瞄提醒，绝不显示 OT
+								if unitToken ~= "player" then
 									friendlyName = UnitName(unitToken) or "某人"
 									foundFriendly = true
 								end
+							elseif okc and canAttack then
+								-- 敌对/可攻击单位（怪物）目标是你 → OT 警告
+								mobName = UnitName(unitToken) or "未知目标"
+								foundHostile = true
 							end
 						end
 					end
@@ -449,6 +495,17 @@ function Automaton_AlertCombat:CheckAggro()
 			end
 		end
 		f = EnumerateFrames(f)
+	end
+
+	-- 友方玩家盯梢补充扫描：
+	-- 帧扫描只能看到有名字板的单位（友方名字板默认关闭），所以再用
+	-- 当前目标/鼠标悬停/小队/团队 等 unit token 做一次可靠扫描
+	if not foundFriendly and self.db.profile.enableFriendlyTargetAlert then
+		local watcher = self:ScanFriendlyWatchers()
+		if watcher then
+			friendlyName = watcher
+			foundFriendly = true
+		end
 	end
 
 	-- 优先显示危险的 OT 警告；否则若友方盯梢提醒开启则显示「有人偷瞄了你」

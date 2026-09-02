@@ -6,7 +6,7 @@ assert(Automaton, "Automaton not found!")
 
 local Automaton_AutoNeed = Automaton:NewModule("AutoNeed")
 local self = Automaton_AutoNeed
-local needvaule = { ["需求"] = 1, ["贪婪"] = 2, ["放弃"] = 0 }
+local needvaule = { ["需求"] = 1, ["贪婪"] = 2, ["放弃"] = 0, ["不选择"] = -1 }
 local function set(field, value)
 	self.db.char[field] = value
 end
@@ -53,32 +53,32 @@ Automaton_AutoNeed.options = {
 			},
 			purple = {
 				name = "紫装需求类型",
-				desc = "紫色（史诗）可装备物品的默认需求类型（需求/贪婪/放弃）",
+				desc = "紫色（史诗）可装备物品的默认需求类型（需求/贪婪/放弃/不选择，不选择=不自动掷骰，保留手动选择）",
 				type = "text",
 				order = 2,
 				get = get,
 				set = set,
-				validate = { "需求", "贪婪", "放弃" },
+				validate = { "需求", "贪婪", "放弃", "不选择" },
 				passValue = "紫装_rolltype",
 			},
 			blue = {
 				name = "蓝装需求类型",
-				desc = "蓝色（稀有）可装备物品的默认需求类型（需求/贪婪/放弃）",
+				desc = "蓝色（稀有）可装备物品的默认需求类型（需求/贪婪/放弃/不选择，不选择=不自动掷骰，保留手动选择）",
 				type = "text",
 				order = 3,
 				get = get,
 				set = set,
-				validate = { "需求", "贪婪", "放弃" },
+				validate = { "需求", "贪婪", "放弃", "不选择" },
 				passValue = "蓝装_rolltype",
 			},
 			green = {
 				name = "绿装需求类型",
-				desc = "绿色（优秀）可装备物品的默认需求类型（需求/贪婪/放弃）",
+				desc = "绿色（优秀）可装备物品的默认需求类型（需求/贪婪/放弃/不选择，不选择=不自动掷骰，保留手动选择）",
 				type = "text",
 				order = 4,
 				get = get,
 				set = set,
-				validate = { "需求", "贪婪", "放弃" },
+				validate = { "需求", "贪婪", "放弃", "不选择" },
 				passValue = "绿装_rolltype",
 			},
 		},
@@ -935,14 +935,19 @@ function Automaton_AutoNeed:CheckItem(itemid)
 	if self.db.char["品质_enable"] then
 		local quality, equipLoc = GetItemQualityAndEquipLoc(itemid)
 		if equipLoc and equipLoc ~= "" then
+			local s
 			if quality == 4 then
-				local s = self.db.char["紫装_rolltype"]
-				return needvaule[s] or 2
+				s = self.db.char["紫装_rolltype"]
 			elseif quality == 3 then
-				local s = self.db.char["蓝装_rolltype"]
-				return needvaule[s] or 2
+				s = self.db.char["蓝装_rolltype"]
 			elseif quality == 2 then
-				local s = self.db.char["绿装_rolltype"]
+				s = self.db.char["绿装_rolltype"]
+			end
+			if s then
+				if s == "不选择" then
+					-- 不做任何选择：不自动掷骰，保留弹窗给玩家手动操作
+					return nil
+				end
 				return needvaule[s] or 2
 			end
 		end
