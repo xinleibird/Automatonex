@@ -44,7 +44,7 @@ Modules\ClearCache.lua
 Modules\SelfName.lua
 Modules\ShaguStance.lua
 Modules\ErrClear.lua
-Modules\Superwow.lua
+#Modules\Superwow.lua
 Modules\CancelTiger.lua
 Modules\NewLevelFrame.lua
 Modules\sTrade.lua
@@ -54,7 +54,7 @@ Modules\AutoShout.lua
 Modules\Unlock.lua
 Modules\1invall.lua
 Modules\AutoOpenBag.lua
-Modules\OmniCC.lua
+#Modules\OmniCC.lua
 Modules\Dismount.lua
 Modules\Unshapeshift.lua
 Modules\RandomMount.lua
@@ -84,9 +84,4 @@ Modules\zTip.lua
 Modules\CDSafe.lua
 Modules\QuestItemBar.lua
 
-Plubics\CleanChat\CleanChat.xml
-
-
-
-
-
+#Plubics\CleanChat\CleanChat.xml
