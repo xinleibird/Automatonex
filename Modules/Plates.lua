@@ -13,8 +13,9 @@ local L = AceLibrary("AceLocale-2.2"):new("Automaton_Plates")
 L:RegisterTranslations("enUS", function()
 	return {
 		["Plates"] = "姓名版自动管理",
-		["Hides player name in city and shows name plates in combat."] = "主城隐藏玩家名字，战斗中自动显示姓名版",
+		["Hides player name in city and shows name plates in combat."] = "主城隐藏玩家名字和姓名版，战斗中自动显示姓名版",
 		["Hide player name in city"] = "主城隐藏玩家名字",
+		["Hide name plates in city"] = "主城隐藏姓名版",
 		["Show name plates in combat"] = "战斗中显示姓名版",
 	}
 end)
@@ -40,6 +41,28 @@ Automaton_Plates.options = {
 		end,
 		order = 2,
 	},
+	hideNameplatesInCity = {
+		type = "toggle",
+		name = L["Hide name plates in city"],
+		desc = "在主城中自动隐藏姓名版",
+		get = function()
+			return Automaton_Plates.db.profile.hideNameplatesInCity
+		end,
+		set = function(v)
+			local wasEnabled = Automaton_Plates.db.profile.hideNameplatesInCity
+			Automaton_Plates.db.profile.hideNameplatesInCity = v
+
+			if wasEnabled and not v then
+				if not Automaton_Plates.nameplatesForcedByCombat then
+					Automaton_Plates:RestoreNameplatesToOriginal(true)
+				end
+				Automaton_Plates.nameplatesForcedByCity = false
+			elseif not wasEnabled and v then
+				Automaton_Plates:ApplyNameplateState()
+			end
+		end,
+		order = 3,
+	},
 	showNameplatesInCombat = {
 		type = "toggle",
 		name = L["Show name plates in combat"],
@@ -52,12 +75,13 @@ Automaton_Plates.options = {
 			Automaton_Plates.db.profile.showNameplatesInCombat = v
 
 			if wasEnabled and not v then
-				Automaton_Plates:RestoreNameplatesToOriginal(true)
+				Automaton_Plates.nameplatesForcedByCombat = false
+				Automaton_Plates:ApplyNameplateState()
 			elseif not wasEnabled and v then
 				Automaton_Plates:CheckCombatState()
 			end
 		end,
-		order = 3,
+		order = 4,
 	},
 }
 
@@ -70,6 +94,7 @@ function Automaton_Plates:OnInitialize()
 	Automaton:RegisterDefaults("Plates", "profile", {
 		disabled = true,
 		hidePlayerNameInCity = false,
+		hideNameplatesInCity = false,
 		showNameplatesInCombat = false,
 		playerNameSettingInWild = "1", -- 野外玩家名字显示设置
 		playerNameSettingInCity = "0", -- 主城玩家名字显示设置
@@ -95,6 +120,7 @@ function Automaton_Plates:OnInitialize()
 	self.hasSavedOriginalNameplates = false
 	self.inCombat = false
 	self.nameplatesForcedByCombat = false
+	self.nameplatesForcedByCity = false
 	self.originalNameplateSettings = nil
 end
 
@@ -117,6 +143,8 @@ end
 function Automaton_Plates:OnDisable()
 	self:RestorePlayerName()
 	self:RestoreNameplatesToOriginal(true)
+	self.nameplatesForcedByCity = false
+	self.nameplatesForcedByCombat = false
 	self:UnregisterAllEvents()
 	self:CancelScheduledEvent("Automaton_Plates_CheckManualChange")
 end
@@ -205,6 +233,9 @@ function Automaton_Plates:CheckZone()
 		-- 模块关闭：恢复为野外设置
 		SetCVar("UnitNamePlayer", self.db.profile.playerNameSettingInWild)
 	end
+
+	-- 处理主城姓名板显示
+	self:ApplyNameplateState()
 end
 
 -- 检查战斗状态
@@ -213,39 +244,51 @@ function Automaton_Plates:CheckCombatState()
 		return
 	end
 
-	if self.db.profile.showNameplatesInCombat then
-		if self.inCombat then
-			self:ShowNameplatesInCombat()
-		else
-			self:HideNameplatesOutOfCombat()
-		end
-	else
-		self:RestoreNameplatesToOriginal()
+	self:ApplyNameplateState()
+end
+
+-- 根据区域和战斗状态统一应用姓名板显示
+function Automaton_Plates:ApplyNameplateState()
+	if not self.initialized then
+		return
 	end
+
+	-- 优先级 1：战斗显示优先
+	if self.inCombat and self.db.profile.showNameplatesInCombat then
+		if not self.hasSavedOriginalNameplates then
+			self:SaveOriginalNameplates()
+		end
+		ShowNameplates()
+		self.nameplatesForcedByCombat = true
+		self.nameplatesForcedByCity = false
+		return
+	end
+
+	-- 优先级 2：主城隐藏
+	if self.db.profile.hideNameplatesInCity then
+		local zone = GetZoneText()
+		local isInCity = self.cityZones[zone] or false
+		if isInCity then
+			if not self.hasSavedOriginalNameplates then
+				self:SaveOriginalNameplates()
+			end
+			HideNameplates()
+			self.nameplatesForcedByCity = true
+			self.nameplatesForcedByCombat = false
+			return
+		end
+	end
+
+	-- 否则恢复原始设置
+	self:RestoreNameplatesToOriginal(true)
+	self.nameplatesForcedByCombat = false
+	self.nameplatesForcedByCity = false
 end
 
 -- 恢复玩家名字显示
 function Automaton_Plates:RestorePlayerName()
 	-- 总是恢复为野外设置
 	SetCVar("UnitNamePlayer", self.db.profile.playerNameSettingInWild)
-end
-
--- 显示战斗中的姓名版
-function Automaton_Plates:ShowNameplatesInCombat()
-	if not self.hasSavedOriginalNameplates then
-		self:SaveOriginalNameplates()
-	end
-	ShowNameplates()
-	self.nameplatesForcedByCombat = true
-end
-
--- 非战斗中隐藏姓名版
-function Automaton_Plates:HideNameplatesOutOfCombat()
-	if not self.hasSavedOriginalNameplates then
-		self:SaveOriginalNameplates()
-	end
-	HideNameplates()
-	self.nameplatesForcedByCombat = true
 end
 
 -- 添加一个手动切换玩家名字的函数（可选）
