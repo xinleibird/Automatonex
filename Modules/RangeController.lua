@@ -31,12 +31,11 @@ Automaton_RangeController.options = {
 		desc = L["Set the combat log recording range (0-200)"],
 		order = 2,
 		get = function()
-			-- 从当前值读取，而不是数据库
-			return Automaton_RangeController.currentRange or 150
+			local v = GetCVar("CombatLogRangeParty")
+			return tonumber(v) or 150
 		end,
 		set = function(v)
-			-- 只设置当前值，不保存到数据库
-			Automaton_RangeController.currentRange = v
+			Automaton_RangeController:ApplyRangeSettings(v)
 		end,
 		min = 0,
 		max = 200,
@@ -82,9 +81,6 @@ function Automaton_RangeController:OnInitialize()
 	})
 	Automaton:SetDisabledAsDefault(self, "RangeController")
 	self:RegisterOptions(self.options)
-
-	-- 初始化当前范围为默认值150
-	self.currentRange = 150
 
 	-- 注册斜杠命令
 	self:RegisterSlashCommands()
@@ -151,7 +147,7 @@ function Automaton_RangeController:InitGUI()
 	self.Slider:SetHeight(20)
 	self.Slider:SetPoint("TOP", title, "BOTTOM", 0, -20)
 	self.Slider:SetMinMaxValues(0, 200)
-	self.Slider:SetValue(150)
+	self.Slider:SetValue(tonumber(GetCVar("CombatLogRangeParty")) or 150)
 	self.Slider:SetValueStep(5)
 	getglobal(self.Slider:GetName() .. "Low"):SetText("0")
 	getglobal(self.Slider:GetName() .. "High"):SetText("200")
@@ -165,8 +161,6 @@ function Automaton_RangeController:InitGUI()
 	self.Slider:SetScript("OnValueChanged", function(slider, value)
 		local currentValue = value or self.Slider:GetValue()
 		self.CurrentValueText:SetText("当前选择: " .. currentValue)
-		-- 同步更新当前范围值
-		self.currentRange = currentValue
 	end)
 
 	-- 确认按钮
@@ -206,9 +200,7 @@ function Automaton_RangeController:RegisterSlashCommands()
 			-- 处理命令行参数
 			local range = tonumber(msg)
 			if range and range >= 0 and range <= 200 then
-				self.currentRange = range
-				self:ApplyRangeSettings()
-				print(string.format("|cFF00FF00[范围控制器] 战斗记录范围已设置为 %d 码|r", range))
+				self:ApplyRangeSettings(range)
 			else
 				-- 显示帮助信息
 				print("|cFFFFFF00用法: /RC <范围值> 或 /FW <范围值>|r")
@@ -221,15 +213,14 @@ function Automaton_RangeController:RegisterSlashCommands()
 			elseif self.GUI then
 				self.GUI:Show()
 				-- 同步滑块值
-				self.Slider:SetValue(self.currentRange or 150)
+				self.Slider:SetValue(tonumber(GetCVar("CombatLogRangeParty")) or 150)
 			end
 		end
 	end
 end
 
-function Automaton_RangeController:ApplyRangeSettings()
-	-- 使用当前范围值
-	local range = self.currentRange or 150
+function Automaton_RangeController:ApplyRangeSettings(range)
+	range = range or (self.Slider and self.Slider:GetValue()) or 150
 
 	-- 设置战斗记录范围的命令
 	local commands = {
@@ -248,6 +239,11 @@ function Automaton_RangeController:ApplyRangeSettings()
 	for _, cvar in ipairs(commands) do
 		-- 使用 SetCVar 来设置控制台变量
 		SetCVar(cvar, range)
+	end
+
+	-- 同步GUI滑块显示
+	if self.Slider then
+		self.Slider:SetValue(range)
 	end
 
 	print(string.format("|cFF00FF00[范围控制器] 战斗记录范围已设置为 %d 码|r", range))
