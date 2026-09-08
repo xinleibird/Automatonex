@@ -81,7 +81,7 @@ Modules\PicoPoisons.lua
 Modules\Xguild.lua
 Modules\RangeController.lua
 Modules\zTip.lua
-Modules\CDSafe.lua
+#Modules\CDSafe.lua
 Modules\QuestItemBar.lua
 
 #Plubics\CleanChat\CleanChat.xml
