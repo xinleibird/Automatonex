@@ -12,8 +12,8 @@ local L = AceLibrary("AceLocale-2.2"):new("Automaton_LootBOP")
 
 L:RegisterTranslations("enUS", function()
 	return {
-		["LootBOP"] = "团队拾取确认",
-		["Ignore BOP confirm message when not in a party or raid"] = "小队或团队中装绑拾取确认自动确认",
+		["LootBOP"] = "独狼拾取确认",
+		["Ignore BOP confirm message when not in a party or raid"] = "独狼时（无队伍无团队）自动确认拾取后绑定弹窗",
 	}
 end)
 
