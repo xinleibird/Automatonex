@@ -9,7 +9,7 @@ local L = AceLibrary("AceLocale-2.2"):new("Automaton_ShiQu")
 L:RegisterTranslations("zhCN", function()
 	return {
 		["ShiQu"] = "强制拾取",
-		["Automatically handle loot distribution based on predefined rules"] = "根据预设规则自动处理战利品分配，支持指定拾取目标",
+		["Automatically handle loot distribution based on predefined rules"] = "队长拾取模式下自动分配：优先给目标玩家，其次给自己，拾取后绑定物品留在尸体",
 		["Permission Check"] = "权限检测",
 		["Toggle permission check for loot handling"] = "切换是否检查拾取权限",
 		["Loot Target"] = "拾取目标",
