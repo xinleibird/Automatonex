@@ -69,7 +69,7 @@ end)
 
 L:RegisterTranslations("zhCN", function()
 	return {
-		["QuestAutomation"] = "任务自动接取与完成（跳过闲聊）",
+		["QuestAutomation"] = "任务自动接取与完成",
 		["Automate quest acceptance and completion"] = "常规任务自动接取与完成",
 		["Enabled"] = "启用",
 		["Toggle quest automation on/off"] = "开启/关闭任务自动化功能",

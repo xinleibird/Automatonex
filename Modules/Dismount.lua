@@ -19,7 +19,7 @@ end)
 
 L:RegisterTranslations("zhCN", function()
 	return {
-		["Dismount"] = "自动下马（PFUI请禁用）",
+		["Dismount"] = "自动下马",
 		["Automatically dismount when casting spells or interacting with flight masters"] = "施法或与飞行管理员对话时自动下马",
 	}
 end)

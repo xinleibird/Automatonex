@@ -20,7 +20,7 @@ end)
 
 L:RegisterTranslations("zhCN", function()
 	return {
-		["Unshapeshift"] = "自动解除形态（pfui禁用）",
+		["Unshapeshift"] = "自动解除形态",
 		["Automatically unshapeshift when you receive error messages about being shapeshifted"] = "当报错提示时自动取消德鲁伊当前形态、萨满幽灵狼、牧师暗影形态",
 	}
 end)
