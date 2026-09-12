@@ -22,13 +22,13 @@ Modules\KeepOnline.lua
 # 训练师技能过滤
 Modules\Filter.lua
 # 自动跟随队伍
-Modules\Follow.lua
+#Modules\Follow.lua
 # 自动接受组队邀请
-Modules\Group.lua
+#Modules\Group.lua
 # 自动组队邀请
 Modules\Invite.lua
 # 拒绝陌生人组队邀请
-Modules\Loner.lua
+#Modules\Loner.lua
 # 自动拾取拾取后绑定物品
 Modules\LootBOP.lua
 # 邮箱记录收件人
@@ -38,7 +38,7 @@ Modules\Plates.lua
 # 商人自动补货
 Modules\Purchases.lua
 # 自动接受战场排队
-Modules\Queue.lua
+#Modules\Queue.lua
 # 团本确认自动准备
 #Modules\Ready.lua
 # 战场自动释放灵魂
@@ -64,19 +64,19 @@ Modules\Lern2Spell.lua
 # 地图主城训练师
 #Modules\Trainer.lua
 # 任务英文链接发送
-Modules\pfQuestSendLink.lua
+#Modules\pfQuestSendLink.lua
 # 自动清理游戏缓存
 #Modules\ClearCache.lua
 # 显示自身角色名
 #Modules\SelfName.lua
-# 自动姿态切换（战士/德鲁伊）
+自动姿态切换（战士/德鲁伊）
 #Modules\ShaguStance.lua
 # 错误信息屏蔽
 #Modules\ErrClear.lua
 # SuperWoW 自动拾取
 #Modules\Superwow.lua
 # 猎人自动取消猎豹守护
-#Modules\CancelTiger.lua
+Modules\CancelTiger.lua
 # 升级窗口提示
 #Modules\NewLevelFrame.lua
 # 交易通告
@@ -98,9 +98,9 @@ Modules\Unlock.lua
 # 施法时自动下马
 Modules\Dismount.lua
 # 自动解除变形
-#Modules\Unshapeshift.lua
+Modules\Unshapeshift.lua
 # 随机召唤坐骑
-Modules\RandomMount.lua
+#Modules\RandomMount.lua
 # 自定义经验条
 #Modules\ExpBar.lua
 # 酒仙挑战追踪
@@ -118,7 +118,7 @@ Modules\QuestAutomation.lua
 # 隐藏动作条两端装饰
 #Modules\HideActionBarEndCaps.lua
 # 物品链接转英文
-Modules\S_ItemLinktoenUS.lua
+#Modules\S_ItemLinktoenUS.lua
 # 自动显示飞行点/旅馆/兽栏
 #Modules\AutoDB.lua
 # 触发效果监控提示
@@ -134,7 +134,7 @@ Modules\InterPlayerLink.lua
 # 动作条法术材料计数
 #Modules\S_ActionCount.lua
 # 副本重置计时
-Modules\Boomtime.lua
+#Modules\Boomtime.lua
 # 自动对皇后下跪
 Modules\KneelToQueen.lua
 # 军团枷锁自动禁键
@@ -147,7 +147,7 @@ Modules\jtlk.lua
 Modules\RangeController.lua
 # 鼠标提示增强
 Modules\zTip.lua
-# 副本进度安全提示（已禁用）
+# 副本进度安全提示
 #Modules\CDSafe.lua
 # 任务物品快捷栏
 #Modules\QuestItemBar.lua
